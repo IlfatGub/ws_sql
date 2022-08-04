@@ -1,0 +1,26 @@
+version: "3.1"
+services:
+  mysql:
+    container_name: sql_nhrs
+    image: mariadb:10.7
+    restart: always
+    volumes:
+      - ./lib:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+  # adminer:
+  #   container_name: sql_nhrs_adminer
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+  phpmyadmin:
+    container_name: sql_nhrs_phpmyadmin
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      - PMA_ARBITRARY=1
