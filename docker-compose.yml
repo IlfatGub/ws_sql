@@ -6,16 +6,11 @@ services:
     restart: always
     volumes:
       - ./lib:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/my.cnf
     environment:
       - MYSQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
     ports:
       - "3306:3306"
-  # adminer:
-  #   container_name: sql_nhrs_adminer
-  #   image: adminer
-  #   restart: always
-  #   ports:
-  #     - 8080:8080
   phpmyadmin:
     container_name: sql_nhrs_phpmyadmin
     image: phpmyadmin
