@@ -6,11 +6,17 @@ services:
     restart: always
     volumes:
       - ./lib:/var/lib/mysql
-      - ./my.cnf:/etc/mysql/my.cnf
+      # - ./my.cnf:/etc/mysql/my.cnf
+      - ./my.cnf:/etc/my.cnf
     environment:
       - MYSQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
     ports:
       - "3306:3306"
+    command: 
+      --sql_mode=""
+      --innodb_buffer_pool_size="5G"
+      --max_connections="1024"
+      # --tmp_table_size="100M"
   phpmyadmin:
     container_name: sql_nhrs_phpmyadmin
     image: phpmyadmin
