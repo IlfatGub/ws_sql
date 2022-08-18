@@ -1,29 +1,60 @@
-version: "3.1"
+version: "3.9"
 services:
-  mysql:
-    container_name: sql_nhrs
-    image: mariadb:10.7
-    restart: always
-    volumes:
-      - ./lib:/var/lib/mysql
-      # - ./my.cnf:/etc/mysql/my.cnf
-      - ./my.cnf:/etc/my.cnf
-    environment:
-      - MYSQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
+  phpmyadmin:
+    image: phpmyadmin
     ports:
-      - "3306:3306"
+      - target: 80
+        published: 8080
+        protocol: tcp
+    environment:
+      - PMA_HOST=mysqldb
+      - MYSQL_USER=root
+      - UPLOAD_LIMIT=300M
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy: 
+        condition: on-failure
+
+  mysqldb:
+    image: mariadb:10.7
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
     command: 
       --sql_mode=""
-      --innodb_buffer_pool_size="5G"
+      --innodb_buffer_pool_size="4G"
+      --innodb_log_file_size="512M"
+      --innodb_flush_log_at_trx_commit=2
       --max_connections="1024"
-      # --tmp_table_size="100M"
-  phpmyadmin:
-    container_name: sql_nhrs_phpmyadmin
-    image: phpmyadmin
-    restart: always
+      --tmp_table_size="512M"
+      --slow-query-log=1
+      --slow-query-log-file="/var/lib/mysql/mysql-slow-query-sit.log"
+      --long-query-time=1
+      --skip-name-resolve=0
+      --query_cache_size="256M"
+      --join_buffer_size="8M"
+      --sort_buffer_size="10M"
+      --bind-address="0.0.0.0"
+    volumes:
+      - type: volume
+        source: sql_lib
+        target: /var/lib/mysql
     ports:
-      - 8080:80
-    environment:
-      - PMA_HOST=mysql
-      - PMA_ARBITRARY=1
-      - UPLOAD_LIMIT=300M
+      - target: 3306
+        published: 3306
+        protocol: tcp
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      restart_policy: 
+        condition: on-failure
+
+volumes:
+  sql_lib:
+    driver_opts:
+      type: nfs
+      o: addr=172.17.82.26,rw,nolock
+      device: ":/var/www/html/sql.nhrs/lib"
